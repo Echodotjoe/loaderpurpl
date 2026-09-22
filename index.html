@@ -1,0 +1,1756 @@
+<!DOCTYPE html>
+<html lang="en" class="dark"><head><script data-bard-client-injected="true">(function(firebaseConfig, initialAuthToken, appId) {
+        window.__firebase_config = firebaseConfig;
+        window.__initial_auth_token = initialAuthToken;
+        window.__app_id = appId;
+            })("\n{\n  \"apiKey\": \"AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6IjExNjRiNzdiNDMzZDdhMDAyMWI4NjE4YjhjYTU3ZTMyZGI5MWUxMTMiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIwMTMzODEzNzA0NjE4Mjk1MTkwOSIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiJjXzNmN2M4ZjQwODdiMDNmN2VfaW5kZXguaHRtbC01MzMifSwiZXhwIjoxNzkwMDk3NzA5LCJpYXQiOjE3OTAwOTQxMDksImFsZyI6IlJTMjU2In0.FAz8XJ_7Nbfcd_zlq1YQfKQ8bLIl0Szolyv8gvvhxvwsrDz2lGC-CFyFF38VpuyQXZuKNwABm9WLNh50gZ00NEVraqeFEgyhevV9DIlehpCrsRf5Yz44sjF6XvMXl2ZojeYwDLqhy6sER1gYoUlr4QyycNw7ULmmO__83Q0T7t_fbRJj3tkEWGvCm5yZb0h09MyumkBBzRUBxllwTesboYA4DRuKH7zvs58WfafMFqIfwXGv65j-QYh3_LtWWuqYxcj1mYsa1U_q29Yg_d08Z28t27pWYlrS2JkI7Hy870d0-PmoP5tUKeHrnCtOhjy2JY8WlKbAFXZ-9SCSBLNAXQ","c_3f7c8f4087b03f7e_index.html-533")</script><script data-bard-client-injected="true">
+  document.addEventListener('input', (event) => {
+    if (event.target && (event.target.isContentEditable || event.target.hasAttribute('contenteditable'))) {
+      const clonedDoc = document.cloneNode(true);
+      const injectedScripts = clonedDoc.querySelectorAll('[data-bard-client-injected="true"]');
+      injectedScripts.forEach(el => el.remove());
+      window.parent.postMessage({
+        type: 'inlineEdit',
+        html: '<!DOCTYPE html>\n' + clonedDoc.documentElement.outerHTML
+      }, '*');
+    }
+  });
+</script><script data-bard-client-injected="true">(function(){'use strict';window.addEventListener("message",a=>{a.data&&a.data.type==="SUPPLEMENTAL_DATA_UPDATE"&&window.dispatchEvent(new CustomEvent("supplementaldataupdate",{detail:a.data.data}))});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const SCROLL_KEYS = new Set([
+    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+    ' ', 'Spacebar', 'PageUp', 'PageDown', 'Home', 'End',
+  ]);
+  const HORIZONTAL_KEYS = new Set(['ArrowLeft', 'ArrowRight']);
+
+  function isTextEntryTarget(target) {
+    if (!target) return false;
+    const tagName = target.tagName;
+    return tagName === 'INPUT' || tagName === 'TEXTAREA' ||
+        tagName === 'SELECT' || target.isContentEditable === true;
+  }
+
+  // An element absorbs the key only if it both overflows on the axis being
+  // scrolled and is configured to scroll on that axis. The cheap dimension
+  // test runs first because getComputedStyle forces a style recalc, and this
+  // runs on every keypress. Each axis is read from its own longhand: the
+  // 'overflow' shorthand serializes as two values when the axes differ, which
+  // is the common 'overflow-x: hidden; overflow-y: auto' pane.
+  function canScroll(node, horizontal) {
+    const overflows = horizontal ? node.scrollWidth > node.clientWidth
+                                 : node.scrollHeight > node.clientHeight;
+    if (!overflows) return false;
+    const style = window.getComputedStyle(node);
+    const overflow = horizontal ? style.overflowX : style.overflowY;
+    return overflow === 'auto' || overflow === 'scroll';
+  }
+
+  // Walks up from the event target so nested scrollers keep their behavior.
+  // <body> is included because pages that pin the root height make it the
+  // scroll container.
+  function hasScrollableAncestor(target, horizontal) {
+    let node = target;
+    while (node && node !== document.documentElement) {
+      if (canScroll(node, horizontal)) return true;
+      node = node.parentElement;
+    }
+    return false;
+  }
+
+  function rootCanScroll(horizontal) {
+    const scroller = document.scrollingElement || document.documentElement;
+    if (!scroller) return false;
+    // Tolerate a pixel of rounding so subpixel layouts do not look scrollable.
+    return horizontal ? scroller.scrollWidth > window.innerWidth + 1
+                      : scroller.scrollHeight > window.innerHeight + 1;
+  }
+
+  window.addEventListener('keydown', function(event) {
+    if (!SCROLL_KEYS.has(event.key)) return;
+    if (event.defaultPrevented) return;
+    // Alt and Meta turn arrows into browser history navigation, and Ctrl is
+    // reserved for shortcuts, so none of them are scroll intent.
+    if (event.altKey || event.metaKey || event.ctrlKey) return;
+
+    const target = event.target;
+    if (isTextEntryTarget(target)) return;
+
+    // Anything that can still absorb the scroll gets to keep it.
+    const horizontal = HORIZONTAL_KEYS.has(event.key);
+    if (rootCanScroll(horizontal)) return;
+    if (hasScrollableAncestor(target, horizontal)) return;
+
+    event.preventDefault();
+  }, {capture: true, passive: false});
+})();</script><script data-bard-client-injected="true">(function() {
+  // Ensure this script is executed only once
+  if (window.firebaseAuthBridgeScriptLoaded) {
+    return;
+  }
+  window.firebaseAuthBridgeScriptLoaded = true;
+
+  let nextTokenPromiseId = 0;
+
+  // Stores { resolve, reject } for ongoing token requests
+  const pendingTokenPromises = {};
+
+  // Listen for messages from the Host Application
+  window.addEventListener('message', function(event) {
+
+    const messageData = event.data;
+
+  if (messageData && messageData.type === 'RESOLVE_NEW_FIREBASE_TOKEN') {
+      const { success, token, error, promiseId } = messageData ?? {};
+      if (pendingTokenPromises[promiseId]) {
+        if (success) {
+          pendingTokenPromises[promiseId].resolve(token);
+        } else {
+          pendingTokenPromises[promiseId].reject(new Error(error || 'Token refresh failed from host.'));
+        }
+        delete pendingTokenPromises[promiseId];
+      }
+    }
+  });
+
+  // Expose a function for the Generated App to request a new Firebase token
+  window.requestNewFirebaseToken = function() {
+    const currentPromiseId = nextTokenPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingTokenPromises[currentPromiseId] = { resolve, reject };
+    });
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'REQUEST_NEW_FIREBASE_TOKEN',
+        promiseId: currentPromiseId
+      }, '*');
+    } else {
+      pendingTokenPromises[currentPromiseId].reject(new Error('No parent window to request token from.'));
+      delete pendingTokenPromises[currentPromiseId];
+    }
+    return promise;
+  };
+})();</script><script data-bard-client-injected="true">
+let realOriginalGetUserMedia = null;
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+}
+
+(function() {
+  if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
+    try {
+      Object.defineProperty(navigator.mediaDevices.__proto__, 'getUserMedia', {
+        get: function() {
+          return undefined; // Or throw an error
+        },
+        configurable: false
+      });
+    } catch (error) {
+      console.error("Error defining prototype getter:", error);
+    }
+  }
+})();
+
+(function() {
+  const pendingMediaResolvers = {};
+  let nextMediaPromiseId = 0;
+
+  function requestMediaPermissions(constraints) {
+    const mediaPromiseId = nextMediaPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingMediaResolvers[mediaPromiseId] = (granted) => {
+        delete pendingMediaResolvers[mediaPromiseId];
+        resolve(granted);
+      };
+    });
+
+    window.parent.postMessage({
+      type: 'requestMediaPermission',
+      constraints: constraints,
+      promiseId: mediaPromiseId,
+    }, '*');
+
+    return promise;
+  }
+
+  let originalGetUserMedia = realOriginalGetUserMedia;
+
+  function interceptGetUserMedia() {
+    if (navigator.mediaDevices) {
+      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+        value: function(constraints) {
+          return requestMediaPermissions(constraints).then((granted) => {
+            if (granted) {
+              if (originalGetUserMedia) {
+                return originalGetUserMedia(constraints);
+              } else {
+                throw new Error("Original getUserMedia not available.");
+              }
+            } else {
+              throw new DOMException('Permission denied', 'NotAllowedError');
+            }
+          });
+        },
+        writable: false,
+        configurable: false
+      });
+    }
+  }
+
+  interceptGetUserMedia();
+
+  const observer = new MutationObserver(function(mutationsList, observer) {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'reconfigured' && mutation.name === 'getUserMedia' && mutation.object === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'attributes' && mutation.attributeName === 'getUserMedia' && mutation.target === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'childList' && mutation.addedNodes) {
+        mutation.addedNodes.forEach(node => {
+          if (node === navigator.mediaDevices) {
+            interceptGetUserMedia();
+          }
+        });
+      }
+    }
+  });
+
+  function interceptSpeechRecognition() {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      return;
+    }
+
+    const OriginalSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const SpeechRecognitionWrapper = function(...args) {
+      const recognizer = new OriginalSpeechRecognition(...args);
+      const originalStart = recognizer.start.bind(recognizer);
+
+      recognizer.start = function() {
+        requestMediaPermissions({ audio: true }).then(granted => {
+          if (granted) {
+            originalStart();
+          } else {
+            const errorEvent = new SpeechRecognitionErrorEvent('error');
+            errorEvent.error = 'not-allowed'; // This is the standard error for permission denial.
+            recognizer.dispatchEvent(errorEvent);
+          }
+        });
+      };
+
+      return recognizer;
+    };
+
+    SpeechRecognitionWrapper.prototype = OriginalSpeechRecognition.prototype;
+    SpeechRecognitionWrapper.prototype.constructor = SpeechRecognitionWrapper;
+
+    if (window.SpeechRecognition) {
+      window.SpeechRecognition = SpeechRecognitionWrapper;
+    }
+    if (window.webkitSpeechRecognition) {
+      window.webkitSpeechRecognition = SpeechRecognitionWrapper;
+    }
+  }
+
+  interceptSpeechRecognition();
+
+  window.addEventListener('message', function(event) {
+    if (event.data) {
+      if (event.data.type === 'resolveMediaPermission') {
+        const { promiseId, granted } = event.data;
+        if (pendingMediaResolvers[promiseId]) {
+          pendingMediaResolvers[promiseId](granted);
+        }
+      }
+    }
+  });
+
+})();</script><script ws-interception-config="{&quot;parentOrigin&quot;:&quot;https://gemini.google.com&quot;,&quot;proxiedDomains&quot;:[]}" data-bard-client-injected="true">(function(){'use strict';var u=typeof Object.defineProperties=="function"?Object.defineProperty:function(b,d,e){if(b==Array.prototype||b==Object.prototype)return b;b[d]=e.value;return b};function v(b){b=["object"==typeof globalThis&&globalThis,b,"object"==typeof window&&window,"object"==typeof self&&self,"object"==typeof global&&global];for(var d=0;d<b.length;++d){var e=b[d];if(e&&e.Math==Math)return e}throw Error("Cannot find global object");}var w=v(this);
+function y(b,d){if(d)a:{var e=w;b=b.split(".");for(var h=0;h<b.length-1;h++){var k=b[h];if(!(k in e))break a;e=e[k]}b=b[b.length-1];h=e[b];d=d(h);d!=h&&d!=null&&u(e,b,{configurable:!0,writable:!0,value:d})}}function z(b){function d(h){return b.next(h)}function e(h){return b.throw(h)}return new Promise(function(h,k){function m(n){n.done?h(n.value):Promise.resolve(n.value).then(d,e).then(m,k)}m(b.next())})}y("globalThis",function(b){return b||w});/*
+
+ Copyright The Closure Library Authors.
+ SPDX-License-Identifier: Apache-2.0
+*/
+function A(b,d){function e(){}e.prototype=d.prototype;b.j=d.prototype;b.prototype=new e;b.prototype.constructor=b;b.h=function(h,k,m){for(var n=Array(arguments.length-2),p=2;p<arguments.length;p++)n[p-2]=arguments[p];return d.prototype[k].apply(h,n)}};function B(b,d,e="*"){function h(a){if(typeof a==="string")return F.encode(a).buffer;if(a instanceof ArrayBuffer)return a.slice(0);if(ArrayBuffer.isView(a))return a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength);throw Error("Invalid data type");}function k(a){a=h(a);var f={type:"send",data:new Uint8Array(a)},g;(g=r)==null||g.postMessage(f,[a])}function m(){if(!r)throw Error("Data port not captured yet.");r.onmessage=a=>{if(a.data.type==="message"){a=new MessageEvent("message",{data:G.decode(a.data.data)});
+let f;(f=c.onmessage)==null||f.call(c,a);c.dispatchEvent(a)}}}function n(){if(!t)throw Error("Control port not captured yet.");t.onmessage=a=>{switch(a.data.type){case "open":l=1;var f=new Event("open"),g;(g=c.onopen)==null||g.call(c,f);c.dispatchEvent(f);q.forEach(H=>{k(H)});q=[];break;case "close":g=a.data;l=3;g=new CloseEvent("close",{code:g.code,reason:g.reason,wasClean:g.wasClean});(f=c.onclose)==null||f.call(c,g);c.dispatchEvent(g);break;case "error":l=3;f=new Event("error");let x;(x=c.onerror)==
+null||x.call(c,f);c.dispatchEvent(f)}}}function p(a){return z(function*(){var f=new MessageChannel;t=f.port1;var g=new MessageChannel;r=g.port1;n();m();window.parent.postMessage({type:"websocket_open",portOrdering:["control","data"],url:b,protocols:a||[],connectionId:I},e,[f.port2,g.port2])}())}var c=Reflect.construct(EventTarget,[],new.target);c.CONNECTING=0;c.OPEN=1;c.CLOSING=2;c.CLOSED=3;c.url=b;c.binaryType="arraybuffer";c.protocol="";c.i="";var l=0,t=null,r=null,q=[],F=new TextEncoder,G=new TextDecoder;
+c.onopen=null;c.onmessage=null;c.onclose=null;c.onerror=null;Object.defineProperty(c,"readyState",{get:()=>l,enumerable:!0,configurable:!0});Object.defineProperty(c,"bufferedAmount",{get:()=>{var a=0;q.forEach(f=>{a+=typeof f==="string"?f.length:f.byteLength});return a},enumerable:!0,configurable:!0});var I=function(){var a;return((a=globalThis.crypto)==null?0:a.randomUUID)?globalThis.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,f=>{var g=Math.random()*16|0;return(f===
+"x"?g:g&3|8).toString(16)})}();c.send=a=>{if(l===1)a instanceof Blob?a.arrayBuffer().then(f=>{k(f)}):k(a);else if(l===0)if(typeof a==="string")q.push(a);else if(a instanceof ArrayBuffer||ArrayBuffer.isView(a))q.push(h(a));else throw Error("Sending Blob is not supported before the connection is open.");else console.debug("WebSocket send called in CLOSING or CLOSED state; ignored.")};c.close=(a=1E3,f="")=>{if(l!==2&&l!==3){l=2;a={type:"close",code:a,reason:f,wasClean:a===1E3};var g;(g=t)==null||g.postMessage(a)}};
+Promise.resolve().then(()=>p(d));return c}A(B,EventTarget);var C=document.currentScript,D=C==null?void 0:C.getAttribute("ws-interception-config");if(!D)throw Error("WebSocket Interceptor: Missing ws-interception-config attribute in the script tag.");var E=JSON.parse(D);if(!E.parentOrigin||typeof E.parentOrigin!=="string")throw Error("WebSocket Interceptor: Invalid parentOrigin in ws-interception-config");
+(function(b){var d=Object.getOwnPropertyDescriptor(window,"WebSocket");if(!d||d.writable||d.configurable)d=Object.assign(function(e,h){try{let k=(new URL(e)).hostname;if(b.proxiedDomains.some(m=>k===m||k.endsWith(`.${m}`)))return new B(e,h,b.parentOrigin)}catch(k){throw window.parent.postMessage({type:"websocket_blocked",url:e,reason:"blocked_invalid_url"},b.parentOrigin),new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");}window.parent.postMessage({type:"websocket_blocked",
+url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");},{CONNECTING:0,OPEN:1,CLOSING:2,CLOSED:3}),Object.defineProperty(window,"WebSocket",{value:d,writable:!1,configurable:!1})})({proxiedDomains:E.proxiedDomains||[],parentOrigin:E.parentOrigin});}).call(this);
+</script><script data-bard-client-injected="true">(function(){'use strict';function a(){window.parent.postMessage({type:"interaction"},"*")}window.addEventListener("click",a,{capture:!0,passive:!0});window.addEventListener("touchstart",a,{capture:!0,passive:!0});window.addEventListener("keydown",a,{capture:!0,passive:!0});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+
+    /**
+   * Normalizes an error event or a promise rejection reason into a structured error object.
+   * @param {*} errorEventOrReason The error object or reason.
+   * @return {object} Structured error data { message, name, stack }.
+   */
+  function getErrorObject(errorEventOrReason) {
+    if (errorEventOrReason instanceof Error) {
+      return {
+        message: errorEventOrReason.message,
+        name: errorEventOrReason.name,
+        stack: errorEventOrReason.stack,
+      };
+    }
+    // Fallback for non-Error objects.
+    try {
+      return {
+        message: JSON.stringify(errorEventOrReason),
+        name: 'UnknownErrorType',
+        stack: null,
+      };
+    } catch (e) {
+      return {
+        message: String(errorEventOrReason),
+        name: 'UnknownErrorTypeNonStringifiable',
+        stack: null,
+      };
+    }
+  }
+
+  /**
+   * Converts an array of arguments (from log/error) into a single string.
+   * Handles Error objects specially to include their message and stack.
+   * @param {Array<*>} args - Arguments passed to console methods.
+   * @return {string} A string representation of the arguments.
+   */
+  function stringifyArgs(args) {
+    return args
+      .map((arg) => {
+        if (arg instanceof Error) {
+          const {message, stack} = arg;
+          return `Error: ${message}${stack ? ('\nStack: ' + stack) : ''}`;
+        }
+        if (typeof arg === 'object' && arg !== null) {
+          try {
+            return JSON.stringify(arg);
+          } catch (error) {
+            return '[Circular Object]';
+          }
+        } else {
+          return String(arg);
+        }
+      })
+      .join(' ');
+  }
+
+  console.log = function(...args) {
+    const logString = stringifyArgs(args);
+    window.parent.postMessage({ type: 'log', message: logString }, '*');
+    originalConsoleLog.apply(console, args);
+  };
+
+  console.error = function(...args) {
+    let errorData;
+    if (args.length > 0 && args[0] instanceof Error) {
+      const err = args[0];
+      // If the first arg is an Error, capture its details.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        ...getErrorObject(err),
+        rawArgsString: stringifyArgs(args.slice(1)),
+        timestamp: new Date().toISOString(),
+      };
+    } else {
+      // If not an Error object, treat all args as a general error message.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        message: stringifyArgs(args),
+        name: 'ConsoleLoggedError',
+        stack: null,
+        timestamp: new Date().toISOString(),
+      };
+    }
+    window.parent.postMessage(errorData, '*');
+    originalConsoleError.apply(console, args);
+  };
+
+  // Listen for global unhandled synchronous errors.
+  window.addEventListener('error', function(event) {
+    const errorDetails = event.error ? getErrorObject(event.error) : {
+      message: event.message,
+      name: 'GlobalError',
+      stack: null,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+    };
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'global',
+      ...errorDetails,
+      message: errorDetails.message || event.message,
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+  // Listen for unhandled promise rejections (asynchronous errors).
+  window.addEventListener('unhandledrejection', function(event) {
+    const errorDetails = getErrorObject(event.reason);
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'unhandledrejection',
+      ...errorDetails,
+      message: errorDetails.message || 'Unhandled Promise Rejection',
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+})();</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PURPLE VAULT - Flash SWF &amp; HTML Game Hub</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            purple: {
+              950: '#090314',
+              900: '#13092b',
+              850: '#1b0c3d',
+              800: '#261152',
+              700: '#3c187e',
+              600: '#581c87',
+              500: '#7e22ce',
+              400: '#a855f7',
+              300: '#c084fc',
+              200: '#e9d5ff'
+            },
+            fuchsia: {
+              500: '#d946ef',
+              400: '#e879f9'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          },
+          animation: {
+            'pulse-glow': 'pulseGlow 3s infinite ease-in-out',
+            'float': 'float 4s infinite ease-in-out'
+          },
+          keyframes: {
+            pulseGlow: {
+              '0%, 100%': { boxShadow: '0 0 15px rgba(168, 85, 247, 0.3)' },
+              '50%': { boxShadow: '0 0 30px rgba(168, 85, 247, 0.7)' }
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-6px)' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Ruffle Flash Player JS -->
+  <script src="https://unpkg.com/@ruffle-rs/ruffle" crossorigin="anonymous"></script>
+
+  <!-- JSZip & FileSaver for Exporting GitHub Repository -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" crossorigin="anonymous"></script>
+
+  <!-- Custom Styles -->
+  <style>
+    body {
+      background-color: #090314;
+      color: #f3e8ff;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0d051f;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #3c187e;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #7e22ce;
+    }
+
+    .glass-card {
+      background: rgba(27, 12, 61, 0.65);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(168, 85, 247, 0.2);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-card:hover {
+      border-color: rgba(192, 132, 252, 0.6);
+      box-shadow: 0 10px 30px -10px rgba(168, 85, 247, 0.4), 0 0 20px rgba(192, 132, 252, 0.2);
+      transform: translateY(-4px);
+    }
+
+    .glass-nav {
+      background: rgba(19, 9, 43, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(168, 85, 247, 0.25);
+    }
+
+    .neon-text-purple {
+      text-shadow: 0 0 10px rgba(192, 132, 252, 0.6), 0 0 20px rgba(168, 85, 247, 0.4);
+    }
+
+    .neon-border {
+      box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+    }
+
+    /* Aspect Ratio Containers for Game Modal */
+    .aspect-4-3 {
+      aspect-ratio: 4 / 3;
+    }
+    .aspect-16-9 {
+      aspect-ratio: 16 / 9;
+    }
+    .aspect-stretch {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Particles Canvas */
+    #particle-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+  </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:Inter, system-ui, sans-serif;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:JetBrains Mono, monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.sticky{position:sticky}.inset-0{inset:0px}.-bottom-10{bottom:-2.5rem}.-right-10{right:-2.5rem}.bottom-5{bottom:1.25rem}.left-3\.5{left:0.875rem}.right-5{right:1.25rem}.top-0{top:0px}.top-1\/2{top:50%}.z-10{z-index:10}.z-40{z-index:40}.z-50{z-index:50}.mx-auto{margin-left:auto;margin-right:auto}.mb-1{margin-bottom:0.25rem}.mt-auto{margin-top:auto}.mb-4{margin-bottom:1rem}.mt-1{margin-top:0.25rem}.line-clamp-1{overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:1}.line-clamp-2{overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}.block{display:block}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.hidden{display:none}.h-11{height:2.75rem}.h-2{height:0.5rem}.h-20{height:5rem}.h-48{height:12rem}.h-9{height:2.25rem}.h-full{height:100%}.h-16{height:4rem}.min-h-screen{min-height:100vh}.w-11{width:2.75rem}.w-2{width:0.5rem}.w-20{width:5rem}.w-48{width:12rem}.w-9{width:2.25rem}.w-full{width:100%}.w-16{width:4rem}.max-w-2xl{max-width:42rem}.max-w-5xl{max-width:64rem}.max-w-7xl{max-width:80rem}.max-w-md{max-width:28rem}.max-w-sm{max-width:24rem}.flex-shrink-0{flex-shrink:0}.flex-grow{flex-grow:1}.-translate-y-1\/2{--tw-translate-y:-50%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.transform{transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@keyframes ping{75%, 100%{transform:scale(2);opacity:0}}.animate-ping{animation:ping 1s cubic-bezier(0, 0, 0.2, 1) infinite}@keyframes pulseGlow{0%, 100%{box-shadow:0 0 15px rgba(168, 85, 247, 0.3)}50%{box-shadow:0 0 30px rgba(168, 85, 247, 0.7)}}.animate-pulse-glow{animation:pulseGlow 3s infinite ease-in-out}.cursor-pointer{cursor:pointer}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-1\.5{gap:0.375rem}.gap-2{gap:0.5rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.gap-5{gap:1.25rem}.gap-6{gap:1.5rem}.space-y-1 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.25rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.space-y-5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.25rem * var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rounded{border-radius:0.25rem}.rounded-2xl{border-radius:1rem}.rounded-\[14px\]{border-radius:14px}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-2{border-width:2px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}.border-dashed{border-style:dashed}.border-fuchsia-500\/40{border-color:rgb(217 70 239 / 0.4)}.border-purple-400{--tw-border-opacity:1;border-color:rgb(168 85 247 / var(--tw-border-opacity, 1))}.border-purple-500\/30{border-color:rgb(126 34 206 / 0.3)}.border-purple-500\/40{border-color:rgb(126 34 206 / 0.4)}.border-purple-600\/30{border-color:rgb(88 28 135 / 0.3)}.border-purple-700\/30{border-color:rgb(60 24 126 / 0.3)}.border-purple-700\/40{border-color:rgb(60 24 126 / 0.4)}.border-purple-700\/50{border-color:rgb(60 24 126 / 0.5)}.border-purple-800\/40{border-color:rgb(38 17 82 / 0.4)}.border-purple-800\/50{border-color:rgb(38 17 82 / 0.5)}.border-purple-900\/50{border-color:rgb(19 9 43 / 0.5)}.border-orange-500\/40{border-color:rgb(249 115 22 / 0.4)}.border-purple-500\/20{border-color:rgb(126 34 206 / 0.2)}.bg-black{--tw-bg-opacity:1;background-color:rgb(0 0 0 / var(--tw-bg-opacity, 1))}.bg-fuchsia-400{--tw-bg-opacity:1;background-color:rgb(232 121 249 / var(--tw-bg-opacity, 1))}.bg-fuchsia-900\/80{background-color:rgb(112 26 117 / 0.8)}.bg-purple-500{--tw-bg-opacity:1;background-color:rgb(126 34 206 / var(--tw-bg-opacity, 1))}.bg-purple-600{--tw-bg-opacity:1;background-color:rgb(88 28 135 / var(--tw-bg-opacity, 1))}.bg-purple-600\/10{background-color:rgb(88 28 135 / 0.1)}.bg-purple-700{--tw-bg-opacity:1;background-color:rgb(60 24 126 / var(--tw-bg-opacity, 1))}.bg-purple-800{--tw-bg-opacity:1;background-color:rgb(38 17 82 / var(--tw-bg-opacity, 1))}.bg-purple-800\/80{background-color:rgb(38 17 82 / 0.8)}.bg-purple-900\/50{background-color:rgb(19 9 43 / 0.5)}.bg-purple-900\/60{background-color:rgb(19 9 43 / 0.6)}.bg-purple-900\/70{background-color:rgb(19 9 43 / 0.7)}.bg-purple-900\/80{background-color:rgb(19 9 43 / 0.8)}.bg-purple-950{--tw-bg-opacity:1;background-color:rgb(9 3 20 / var(--tw-bg-opacity, 1))}.bg-purple-950\/40{background-color:rgb(9 3 20 / 0.4)}.bg-purple-950\/50{background-color:rgb(9 3 20 / 0.5)}.bg-purple-950\/80{background-color:rgb(9 3 20 / 0.8)}.bg-purple-950\/90{background-color:rgb(9 3 20 / 0.9)}.bg-fuchsia-900\/70{background-color:rgb(112 26 117 / 0.7)}.bg-orange-950\/70{background-color:rgb(67 20 7 / 0.7)}.bg-purple-900\/90{background-color:rgb(19 9 43 / 0.9)}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.bg-gradient-to-tr{background-image:linear-gradient(to top right, var(--tw-gradient-stops))}.bg-gradient-to-br{background-image:linear-gradient(to bottom right, var(--tw-gradient-stops))}.from-purple-300{--tw-gradient-from:#c084fc var(--tw-gradient-from-position);--tw-gradient-to:rgb(192 132 252 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-purple-600{--tw-gradient-from:#581c87 var(--tw-gradient-from-position);--tw-gradient-to:rgb(88 28 135 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-purple-700{--tw-gradient-from:#3c187e var(--tw-gradient-from-position);--tw-gradient-to:rgb(60 24 126 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.via-fuchsia-600{--tw-gradient-to:rgb(192 38 211 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #c026d3 var(--tw-gradient-via-position), var(--tw-gradient-to)}.via-purple-600{--tw-gradient-to:rgb(88 28 135 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #581c87 var(--tw-gradient-via-position), var(--tw-gradient-to)}.via-purple-800{--tw-gradient-to:rgb(38 17 82 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #261152 var(--tw-gradient-via-position), var(--tw-gradient-to)}.to-fuchsia-400{--tw-gradient-to:#e879f9 var(--tw-gradient-to-position)}.to-fuchsia-600{--tw-gradient-to:#c026d3 var(--tw-gradient-to-position)}.to-purple-400{--tw-gradient-to:#a855f7 var(--tw-gradient-to-position)}.to-purple-600{--tw-gradient-to:#581c87 var(--tw-gradient-to-position)}.to-purple-950{--tw-gradient-to:#090314 var(--tw-gradient-to-position)}.bg-clip-text{-webkit-background-clip:text;background-clip:text}.p-0\.5{padding:0.125rem}.p-1{padding:0.25rem}.p-2{padding:0.5rem}.p-2\.5{padding:0.625rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.px-1\.5{padding-left:0.375rem;padding-right:0.375rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-3\.5{padding-left:0.875rem;padding-right:0.875rem}.px-4{padding-left:1rem;padding-right:1rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-16{padding-top:4rem;padding-bottom:4rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-6{padding-top:1.5rem;padding-bottom:1.5rem}.pb-1{padding-bottom:0.25rem}.pb-3{padding-bottom:0.75rem}.pl-10{padding-left:2.5rem}.pr-4{padding-right:1rem}.pt-2{padding-top:0.5rem}.text-center{text-align:center}.font-mono{font-family:JetBrains Mono, monospace}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-black{font-weight:900}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-medium{font-weight:500}.font-semibold{font-weight:600}.leading-relaxed{line-height:1.625}.leading-tight{line-height:1.25}.tracking-wide{letter-spacing:0.025em}.tracking-wider{letter-spacing:0.05em}.text-fuchsia-300{--tw-text-opacity:1;color:rgb(240 171 252 / var(--tw-text-opacity, 1))}.text-fuchsia-400{--tw-text-opacity:1;color:rgb(232 121 249 / var(--tw-text-opacity, 1))}.text-orange-400{--tw-text-opacity:1;color:rgb(251 146 60 / var(--tw-text-opacity, 1))}.text-purple-200{--tw-text-opacity:1;color:rgb(233 213 255 / var(--tw-text-opacity, 1))}.text-purple-300{--tw-text-opacity:1;color:rgb(192 132 252 / var(--tw-text-opacity, 1))}.text-purple-300\/70{color:rgb(192 132 252 / 0.7)}.text-purple-300\/80{color:rgb(192 132 252 / 0.8)}.text-purple-400{--tw-text-opacity:1;color:rgb(168 85 247 / var(--tw-text-opacity, 1))}.text-purple-400\/80{color:rgb(168 85 247 / 0.8)}.text-purple-500{--tw-text-opacity:1;color:rgb(126 34 206 / var(--tw-text-opacity, 1))}.text-transparent{color:transparent}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-fuchsia-200{--tw-text-opacity:1;color:rgb(245 208 254 / var(--tw-text-opacity, 1))}.text-orange-300{--tw-text-opacity:1;color:rgb(253 186 116 / var(--tw-text-opacity, 1))}.placeholder-purple-400::placeholder{--tw-placeholder-opacity:1;color:rgb(168 85 247 / var(--tw-placeholder-opacity, 1))}.placeholder-purple-500::placeholder{--tw-placeholder-opacity:1;color:rgb(126 34 206 / var(--tw-placeholder-opacity, 1))}.opacity-0{opacity:0}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-purple-900\/50{--tw-shadow-color:rgb(19 9 43 / 0.5);--tw-shadow:var(--tw-shadow-colored)}.shadow-purple-900\/60{--tw-shadow-color:rgb(19 9 43 / 0.6);--tw-shadow:var(--tw-shadow-colored)}.shadow-purple-950\/80{--tw-shadow-color:rgb(9 3 20 / 0.8);--tw-shadow:var(--tw-shadow-colored)}.shadow-purple-950{--tw-shadow-color:#090314;--tw-shadow:var(--tw-shadow-colored)}.blur-3xl{--tw-blur:blur(64px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-blur-md{--tw-backdrop-blur:blur(12px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-colors{transition-property:color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-opacity{transition-property:opacity;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-300{transition-duration:300ms}.selection\:bg-purple-500 *::selection{--tw-bg-opacity:1;background-color:rgb(126 34 206 / var(--tw-bg-opacity, 1))}.selection\:text-white *::selection{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.selection\:bg-purple-500::selection{--tw-bg-opacity:1;background-color:rgb(126 34 206 / var(--tw-bg-opacity, 1))}.selection\:text-white::selection{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.hover\:scale-\[1\.02\]:hover{--tw-scale-x:1.02;--tw-scale-y:1.02;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:border-fuchsia-400:hover{--tw-border-opacity:1;border-color:rgb(232 121 249 / var(--tw-border-opacity, 1))}.hover\:border-purple-400\/60:hover{border-color:rgb(168 85 247 / 0.6)}.hover\:bg-fuchsia-700:hover{--tw-bg-opacity:1;background-color:rgb(162 28 175 / var(--tw-bg-opacity, 1))}.hover\:bg-purple-600:hover{--tw-bg-opacity:1;background-color:rgb(88 28 135 / var(--tw-bg-opacity, 1))}.hover\:bg-purple-700:hover{--tw-bg-opacity:1;background-color:rgb(60 24 126 / var(--tw-bg-opacity, 1))}.hover\:bg-purple-800:hover{--tw-bg-opacity:1;background-color:rgb(38 17 82 / var(--tw-bg-opacity, 1))}.hover\:bg-purple-900\/30:hover{background-color:rgb(19 9 43 / 0.3)}.hover\:bg-purple-900\/50:hover{background-color:rgb(19 9 43 / 0.5)}.hover\:from-purple-500:hover{--tw-gradient-from:#7e22ce var(--tw-gradient-from-position);--tw-gradient-to:rgb(126 34 206 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.hover\:from-purple-600:hover{--tw-gradient-from:#581c87 var(--tw-gradient-from-position);--tw-gradient-to:rgb(88 28 135 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.hover\:to-fuchsia-500:hover{--tw-gradient-to:#d946ef var(--tw-gradient-to-position)}.hover\:text-fuchsia-300:hover{--tw-text-opacity:1;color:rgb(240 171 252 / var(--tw-text-opacity, 1))}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.hover\:text-red-400:hover{--tw-text-opacity:1;color:rgb(248 113 113 / var(--tw-text-opacity, 1))}.hover\:shadow-lg:hover{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.hover\:shadow-purple-700\/30:hover{--tw-shadow-color:rgb(60 24 126 / 0.3);--tw-shadow:var(--tw-shadow-colored)}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.focus\:ring-2:focus{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}.focus\:ring-purple-400:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(168 85 247 / var(--tw-ring-opacity, 1))}.focus\:ring-purple-500:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(126 34 206 / var(--tw-ring-opacity, 1))}.active\:scale-\[0\.98\]:active{--tw-scale-x:0.98;--tw-scale-y:0.98;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.active\:scale-95:active{--tw-scale-x:.95;--tw-scale-y:.95;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group\/btn:hover .group-hover\/btn\:scale-110{--tw-scale-x:1.1;--tw-scale-y:1.1;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:scale-105{--tw-scale-x:1.05;--tw-scale-y:1.05;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group\/drop:hover .group-hover\/drop\:text-fuchsia-400{--tw-text-opacity:1;color:rgb(232 121 249 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:text-fuchsia-300{--tw-text-opacity:1;color:rgb(240 171 252 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:opacity-100{opacity:1}@media (min-width: 640px){.sm\:flex{display:flex}.sm\:h-20{height:5rem}.sm\:w-80{width:20rem}.sm\:w-auto{width:auto}.sm\:w-20{width:5rem}.sm\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.sm\:flex-row{flex-direction:row}.sm\:gap-3{gap:0.75rem}.sm\:p-6{padding:1.5rem}.sm\:pb-0{padding-bottom:0px}.sm\:text-2xl{font-size:1.5rem;line-height:2rem}.sm\:text-base{font-size:1rem;line-height:1.5rem}.sm\:text-sm{font-size:0.875rem;line-height:1.25rem}.sm\:text-3xl{font-size:1.875rem;line-height:2.25rem}.sm\:text-lg{font-size:1.125rem;line-height:1.75rem}}@media (min-width: 768px){.md\:w-auto{width:auto}.md\:flex-row{flex-direction:row}.md\:text-left{text-align:left}}@media (min-width: 1024px){.lg\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.lg\:px-8{padding-left:2rem;padding-right:2rem}}@media (min-width: 1280px){.xl\:grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}}</style></head>
+<body class="min-h-screen flex flex-col relative selection:bg-purple-500 selection:text-white">
+
+  <canvas id="particle-canvas" width="948" height="828"></canvas>
+
+  <!-- MAIN APP CONTAINER -->
+  <div class="relative z-10 flex flex-col flex-grow">
+
+    <header class="sticky top-0 z-40 glass-nav px-4 lg:px-8 py-3 transition-all duration-300">
+      <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+        
+        <!-- Logo & Branding -->
+        <div class="flex items-center gap-3 cursor-pointer" onclick="resetFilters()">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-purple-700 via-fuchsia-600 to-purple-400 p-0.5 shadow-lg shadow-purple-900/50 flex items-center justify-center animate-pulse-glow">
+            <div class="w-full h-full bg-purple-950 rounded-[14px] flex items-center justify-center">
+              <i class="fa-solid font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-fuchsia-400 text-xl fa-gamepad"></i>
+            </div>
+          </div>
+          <div>
+            <h1 class="text-xl sm:text-2xl font-extrabold tracking-wider text-white neon-text-purple flex items-center gap-2">
+              PURPLE <span class="text-purple-400">VAULT</span>
+            </h1>
+            <p class="text-xs text-purple-300/80 font-medium tracking-wide">SWF &amp; HTML Game Hub • Direct `./items/` Loader</p>
+          </div>
+        </div>
+
+        <!-- Action Buttons & Quick Controls -->
+        <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+          
+          <!-- Add / Edit Item Button -->
+          <button onclick="openAddGameModal()" class="px-3.5 py-2 rounded-xl bg-purple-900/70 hover:bg-purple-800 border border-purple-500/30 text-purple-200 text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all hover:shadow-lg hover:shadow-purple-700/30">
+            <i class="fa-solid fa-plus text-fuchsia-400"></i>
+            <span>Add Game</span>
+          </button>
+
+          <!-- Load Local Folder / Files -->
+          <button onclick="triggerFolderInput()" class="px-3.5 py-2 rounded-xl bg-purple-900/70 hover:bg-purple-800 border border-purple-500/30 text-purple-200 text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all hover:shadow-lg hover:shadow-purple-700/30" title="Load items directory or local .swf / .html files">
+            <i class="fa-solid fa-folder-open text-purple-300"></i>
+            <span>Load Folder / Files</span>
+          </button>
+          <input type="file" id="folder-input" webkitdirectory="" directory="" multiple="" class="hidden" onchange="handleFolderSelect(event)">
+          <input type="file" id="files-input" accept=".swf,.html,.htm" multiple="" class="hidden" onchange="handleFileSelect(event)">
+
+          <!-- GitHub Repo Zip Export Button -->
+          <button onclick="exportGitHubRepoZip()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-600 to-purple-600 hover:from-purple-500 hover:to-fuchsia-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-purple-900/60 flex items-center gap-2 transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+            <i class="fa-brands fa-github text-base"></i>
+            <span>Download GitHub Repo (.zip)</span>
+          </button>
+        </div>
+
+      </div>
+    </header>
+
+    <main class="max-w-7xl w-full mx-auto px-4 lg:px-8 py-6 flex-grow flex flex-col gap-6">
+      
+      <!-- Quick Info / Drop Banner -->
+      <div class="glass-card rounded-2xl p-5 relative overflow-hidden group">
+        <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4 relative z-10">
+          <div class="space-y-1 text-center md:text-left">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-900/80 border border-purple-500/40 text-purple-300 text-xs font-semibold">
+              <span class="w-2 h-2 rounded-full bg-fuchsia-400 animate-ping"></span>
+              Flash (Ruffle) &amp; HTML5 Ready
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-white">Play local Flash SWF &amp; HTML Games instantly</h2>
+            <p class="text-xs sm:text-sm text-purple-300/80 max-w-2xl">
+              Place your <code class="bg-purple-950 px-1.5 py-0.5 rounded text-fuchsia-300 border border-purple-700/50">.swf</code> or <code class="bg-purple-950 px-1.5 py-0.5 rounded text-purple-300 border border-purple-700/50">.html</code> files into the <span class="text-fuchsia-300 font-semibold">items/</span> directory, or drop files directly below to test them in real-time!
+            </p>
+          </div>
+
+          <!-- Drag and Drop Dropzone Trigger -->
+          <div id="drop-zone" onclick="document.getElementById('files-input').click()" class="w-full md:w-auto px-6 py-4 rounded-xl border-2 border-dashed border-purple-500/40 hover:border-fuchsia-400 bg-purple-950/40 hover:bg-purple-900/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 group/drop">
+            <i class="fa-solid fa-cloud-arrow-up text-2xl text-purple-400 group-hover/drop:text-fuchsia-400 transition-colors"></i>
+            <span class="text-xs font-bold text-purple-200">Drag &amp; Drop Games Here</span>
+            <span class="text-[10px] text-purple-400">Supports .SWF and .HTML</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search & Tag Filters Bar -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-purple-950/50 p-2.5 rounded-2xl border border-purple-800/40">
+        
+        <!-- Search Input -->
+        <div class="relative w-full sm:w-80">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-purple-400 text-sm"></i>
+          <input type="text" id="search-input" oninput="filterGames()" placeholder="Search titles, tags, filenames..." class="w-full bg-purple-900/60 text-white placeholder-purple-400 text-xs sm:text-sm rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500 border border-purple-700/30">
+        </div>
+
+        <!-- Format Tag Filters -->
+        <div class="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+          <button onclick="setFilter('all')" id="filter-all" class="filter-btn active px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-purple-600 text-white border border-purple-400 shadow-md transition-all">
+            All Games (<span id="count-all">6</span>)
+          </button>
+          <button onclick="setFilter('swf')" id="filter-swf" class="filter-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-purple-900/70 hover:bg-purple-800 text-purple-300 border border-purple-700/40 transition-all flex items-center gap-1.5">
+            <i class="fa-solid fa-bolt text-fuchsia-400"></i>
+            Flash (.SWF) (<span id="count-swf">3</span>)
+          </button>
+          <button onclick="setFilter('html')" id="filter-html" class="filter-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-purple-900/70 hover:bg-purple-800 text-purple-300 border border-purple-700/40 transition-all flex items-center gap-1.5">
+            <i class="fa-brands fa-html5 text-orange-400"></i>
+            HTML5 (<span id="count-html">3</span>)
+          </button>
+        </div>
+
+      </div>
+
+      <div id="games-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"><div class="glass-card rounded-2xl p-5 flex flex-col justify-between relative group border border-purple-500/20 hover:border-purple-400/60">
+          <div>
+            <!-- Top Badge & Actions -->
+            <div class="flex items-center justify-between mb-4">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-wider border bg-orange-950/70 text-orange-300 border-orange-500/40">
+                <i class="fa-solid fa-brands fa-html5 text-orange-400"></i>
+                HTML5
+              </span>
+              <button onclick="deleteGame('g1', event)" class="opacity-0 group-hover:opacity-100 transition-opacity text-purple-400 hover:text-red-400 p-1" title="Delete from list">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            </div>
+
+            <!-- Big Rounded Purple Icon -->
+            <div class="flex items-center gap-4 mb-4">
+              <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-purple-600 via-purple-800 to-purple-950 p-0.5 shadow-lg shadow-purple-950/80 flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
+                <div class="w-full h-full bg-purple-900/90 rounded-[14px] flex items-center justify-center text-2xl sm:text-3xl text-purple-200 group-hover:text-fuchsia-300 transition-colors">
+                  <i class="fa-solid fa-rocket"></i>
+                </div>
+              </div>
+
+              <div class="overflow-hidden">
+                <h3 class="font-bold text-base sm:text-lg text-white group-hover:text-fuchsia-300 transition-colors leading-tight line-clamp-1">Cyber Retro Runner</h3>
+                <p class="text-[11px] font-mono text-purple-400/80 mt-1 truncate" title="items/cyber_runner.html">
+                  <i class="fa-regular fa-folder text-[10px]"></i> items/cyber_runner.html
+                </p>
+              </div>
+            </div>
+
+            <p class="text-xs text-purple-300/70 line-clamp-2 mb-4 leading-relaxed">Neon-infused fast-paced HTML canvas obstacles runner.</p>
+          </div>
+
+          <!-- Bottom Play Action Button -->
+          <button onclick="playGame('g1')" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-700 via-purple-600 to-fuchsia-600 hover:from-purple-600 hover:to-fuchsia-500 text-white font-bold text-xs sm:text-sm tracking-wide shadow-md shadow-purple-950 flex items-center justify-center gap-2 transition-all transform active:scale-95 group/btn">
+            <i class="fa-solid fa-circle-play text-base text-fuchsia-200 group-hover/btn:scale-110 transition-transform"></i>
+            <span>PLAY NOW</span>
+          </button>
+        </div><div class="glass-card rounded-2xl p-5 flex flex-col justify-between relative group border border-purple-500/20 hover:border-purple-400/60">
+          <div>
+            <!-- Top Badge & Actions -->
+            <div class="flex items-center justify-between mb-4">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-wider border bg-fuchsia-900/70 text-fuchsia-300 border-fuchsia-500/40">
+                <i class="fa-solid fa-bolt text-fuchsia-400"></i>
+                FLASH .SWF
+              </span>
+              <button onclick="deleteGame('g2', event)" class="opacity-0 group-hover:opacity-100 transition-opacity text-purple-400 hover:text-red-400 p-1" title="Delete from list">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            </div>
+
+            <!-- Big Rounded Purple Icon -->
+            <div class="flex items-center gap-4 mb-4">
+              <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-purple-600 via-purple-800 to-purple-950 p-0.5 shadow-lg shadow-purple-950/80 flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
+                <div class="w-full h-full bg-purple-900/90 rounded-[14px] flex items-center justify-center text-2xl sm:text-3xl text-purple-200 group-hover:text-fuchsia-300 transition-colors">
+                  <i class="fa-solid fa-ghost"></i>
+                </div>
+              </div>
+
+              <div class="overflow-hidden">
+                <h3 class="font-bold text-base sm:text-lg text-white group-hover:text-fuchsia-300 transition-colors leading-tight line-clamp-1">Alien Space SWF Attack</h3>
+                <p class="text-[11px] font-mono text-purple-400/80 mt-1 truncate" title="items/alien_adventure.swf">
+                  <i class="fa-regular fa-folder text-[10px]"></i> items/alien_adventure.swf
+                </p>
+              </div>
+            </div>
+
+            <p class="text-xs text-purple-300/70 line-clamp-2 mb-4 leading-relaxed">Classic Flash retro alien space shooter executable via Ruffle.</p>
+          </div>
+
+          <!-- Bottom Play Action Button -->
+          <button onclick="playGame('g2')" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-700 via-purple-600 to-fuchsia-600 hover:from-purple-600 hover:to-fuchsia-500 text-white font-bold text-xs sm:text-sm tracking-wide shadow-md shadow-purple-950 flex items-center justify-center gap-2 transition-all transform active:scale-95 group/btn">
+            <i class="fa-solid fa-circle-play text-base text-fuchsia-200 group-hover/btn:scale-110 transition-transform"></i>
+            <span>PLAY NOW</span>
+          </button>
+        </div><div class="glass-card rounded-2xl p-5 flex flex-col justify-between relative group border border-purple-500/20 hover:border-purple-400/60">
+          <div>
+            <!-- Top Badge & Actions -->
+            <div class="flex items-center justify-between mb-4">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-wider border bg-orange-950/70 text-orange-300 border-orange-500/40">
+                <i class="fa-solid fa-brands fa-html5 text-orange-400"></i>
+                HTML5
+              </span>
+              <button onclick="deleteGame('g3', event)" class="opacity-0 group-hover:opacity-100 transition-opacity text-purple-400 hover:text-red-400 p-1" title="Delete from list">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            </div>
+
+            <!-- Big Rounded Purple Icon -->
+            <div class="flex items-center gap-4 mb-4">
+              <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-purple-600 via-purple-800 to-purple-950 p-0.5 shadow-lg shadow-purple-950/80 flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
+                <div class="w-full h-full bg-purple-900/90 rounded-[14px] flex items-center justify-center text-2xl sm:text-3xl text-purple-200 group-hover:text-fuchsia-300 transition-colors">
+                  <i class="fa-solid fa-cubes"></i>
+                </div>
+              </div>
+
+              <div class="overflow-hidden">
+                <h3 class="font-bold text-base sm:text-lg text-white group-hover:text-fuchsia-300 transition-colors leading-tight line-clamp-1">Neon Brick Breaker</h3>
+                <p class="text-[11px] font-mono text-purple-400/80 mt-1 truncate" title="items/brick_breaker.html">
+                  <i class="fa-regular fa-folder text-[10px]"></i> items/brick_breaker.html
+                </p>
+              </div>
+            </div>
+
+            <p class="text-xs text-purple-300/70 line-clamp-2 mb-4 leading-relaxed">Vibrant arcade brick destruction game built with HTML5.</p>
+          </div>
+
+          <!-- Bottom Play Action Button -->
+          <button onclick="playGame('g3')" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-700 via-purple-600 to-fuchsia-600 hover:from-purple-600 hover:to-fuchsia-500 text-white font-bold text-xs sm:text-sm tracking-wide shadow-md shadow-purple-950 flex items-center justify-center gap-2 transition-all transform active:scale-95 group/btn">
+            <i class="fa-solid fa-circle-play text-base text-fuchsia-200 group-hover/btn:scale-110 transition-transform"></i>
+            <span>PLAY NOW</span>
+          </button>
+        </div><div class="glass-card rounded-2xl p-5 flex flex-col justify-between relative group border border-purple-500/20 hover:border-purple-400/60">
+          <div>
+            <!-- Top Badge & Actions -->
+            <div class="flex items-center justify-between mb-4">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-wider border bg-fuchsia-900/70 text-fuchsia-300 border-fuchsia-500/40">
+                <i class="fa-solid fa-bolt text-fuchsia-400"></i>
+                FLASH .SWF
+              </span>
+              <button onclick="deleteGame('g4', event)" class="opacity-0 group-hover:opacity-100 transition-opacity text-purple-400 hover:text-red-400 p-1" title="Delete from list">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            </div>
+
+            <!-- Big Rounded Purple Icon -->
+            <div class="flex items-center gap-4 mb-4">
+              <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-purple-600 via-purple-800 to-purple-950 p-0.5 shadow-lg shadow-purple-950/80 flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
+                <div class="w-full h-full bg-purple-900/90 rounded-[14px] flex items-center justify-center text-2xl sm:text-3xl text-purple-200 group-hover:text-fuchsia-300 transition-colors">
+                  <i class="fa-solid fa-crosshair"></i>
+                </div>
+              </div>
+
+              <div class="overflow-hidden">
+                <h3 class="font-bold text-base sm:text-lg text-white group-hover:text-fuchsia-300 transition-colors leading-tight line-clamp-1">Flash Retro Tank Arena</h3>
+                <p class="text-[11px] font-mono text-purple-400/80 mt-1 truncate" title="items/retro_tank.swf">
+                  <i class="fa-regular fa-folder text-[10px]"></i> items/retro_tank.swf
+                </p>
+              </div>
+            </div>
+
+            <p class="text-xs text-purple-300/70 line-clamp-2 mb-4 leading-relaxed">Classic Flash tank battle simulator with neon graphics.</p>
+          </div>
+
+          <!-- Bottom Play Action Button -->
+          <button onclick="playGame('g4')" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-700 via-purple-600 to-fuchsia-600 hover:from-purple-600 hover:to-fuchsia-500 text-white font-bold text-xs sm:text-sm tracking-wide shadow-md shadow-purple-950 flex items-center justify-center gap-2 transition-all transform active:scale-95 group/btn">
+            <i class="fa-solid fa-circle-play text-base text-fuchsia-200 group-hover/btn:scale-110 transition-transform"></i>
+            <span>PLAY NOW</span>
+          </button>
+        </div><div class="glass-card rounded-2xl p-5 flex flex-col justify-between relative group border border-purple-500/20 hover:border-purple-400/60">
+          <div>
+            <!-- Top Badge & Actions -->
+            <div class="flex items-center justify-between mb-4">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-wider border bg-orange-950/70 text-orange-300 border-orange-500/40">
+                <i class="fa-solid fa-brands fa-html5 text-orange-400"></i>
+                HTML5
+              </span>
+              <button onclick="deleteGame('g5', event)" class="opacity-0 group-hover:opacity-100 transition-opacity text-purple-400 hover:text-red-400 p-1" title="Delete from list">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            </div>
+
+            <!-- Big Rounded Purple Icon -->
+            <div class="flex items-center gap-4 mb-4">
+              <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-purple-600 via-purple-800 to-purple-950 p-0.5 shadow-lg shadow-purple-950/80 flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
+                <div class="w-full h-full bg-purple-900/90 rounded-[14px] flex items-center justify-center text-2xl sm:text-3xl text-purple-200 group-hover:text-fuchsia-300 transition-colors">
+                  <i class="fa-solid fa-chess-knight"></i>
+                </div>
+              </div>
+
+              <div class="overflow-hidden">
+                <h3 class="font-bold text-base sm:text-lg text-white group-hover:text-fuchsia-300 transition-colors leading-tight line-clamp-1">Cosmic Memory Match</h3>
+                <p class="text-[11px] font-mono text-purple-400/80 mt-1 truncate" title="items/memory_match.html">
+                  <i class="fa-regular fa-folder text-[10px]"></i> items/memory_match.html
+                </p>
+              </div>
+            </div>
+
+            <p class="text-xs text-purple-300/70 line-clamp-2 mb-4 leading-relaxed">Brain testing purple neon tile matching puzzle game.</p>
+          </div>
+
+          <!-- Bottom Play Action Button -->
+          <button onclick="playGame('g5')" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-700 via-purple-600 to-fuchsia-600 hover:from-purple-600 hover:to-fuchsia-500 text-white font-bold text-xs sm:text-sm tracking-wide shadow-md shadow-purple-950 flex items-center justify-center gap-2 transition-all transform active:scale-95 group/btn">
+            <i class="fa-solid fa-circle-play text-base text-fuchsia-200 group-hover/btn:scale-110 transition-transform"></i>
+            <span>PLAY NOW</span>
+          </button>
+        </div><div class="glass-card rounded-2xl p-5 flex flex-col justify-between relative group border border-purple-500/20 hover:border-purple-400/60">
+          <div>
+            <!-- Top Badge & Actions -->
+            <div class="flex items-center justify-between mb-4">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-wider border bg-fuchsia-900/70 text-fuchsia-300 border-fuchsia-500/40">
+                <i class="fa-solid fa-bolt text-fuchsia-400"></i>
+                FLASH .SWF
+              </span>
+              <button onclick="deleteGame('g6', event)" class="opacity-0 group-hover:opacity-100 transition-opacity text-purple-400 hover:text-red-400 p-1" title="Delete from list">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            </div>
+
+            <!-- Big Rounded Purple Icon -->
+            <div class="flex items-center gap-4 mb-4">
+              <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-purple-600 via-purple-800 to-purple-950 p-0.5 shadow-lg shadow-purple-950/80 flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
+                <div class="w-full h-full bg-purple-900/90 rounded-[14px] flex items-center justify-center text-2xl sm:text-3xl text-purple-200 group-hover:text-fuchsia-300 transition-colors">
+                  <i class="fa-solid fa-dragon"></i>
+                </div>
+              </div>
+
+              <div class="overflow-hidden">
+                <h3 class="font-bold text-base sm:text-lg text-white group-hover:text-fuchsia-300 transition-colors leading-tight line-clamp-1">Flash Castle Defender</h3>
+                <p class="text-[11px] font-mono text-purple-400/80 mt-1 truncate" title="items/castle_defense.swf">
+                  <i class="fa-regular fa-folder text-[10px]"></i> items/castle_defense.swf
+                </p>
+              </div>
+            </div>
+
+            <p class="text-xs text-purple-300/70 line-clamp-2 mb-4 leading-relaxed">Tower defense Flash strategy game.</p>
+          </div>
+
+          <!-- Bottom Play Action Button -->
+          <button onclick="playGame('g6')" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-700 via-purple-600 to-fuchsia-600 hover:from-purple-600 hover:to-fuchsia-500 text-white font-bold text-xs sm:text-sm tracking-wide shadow-md shadow-purple-950 flex items-center justify-center gap-2 transition-all transform active:scale-95 group/btn">
+            <i class="fa-solid fa-circle-play text-base text-fuchsia-200 group-hover/btn:scale-110 transition-transform"></i>
+            <span>PLAY NOW</span>
+          </button>
+        </div></div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="hidden flex-col items-center justify-center py-16 text-center space-y-4">
+        <div class="w-20 h-20 rounded-full bg-purple-900/50 border border-purple-600/30 flex items-center justify-center text-purple-400 text-3xl">
+          <i class="fa-solid fa-ghost"></i>
+        </div>
+        <h3 class="text-lg font-bold text-white">No games found</h3>
+        <p class="text-xs text-purple-300/70 max-w-sm">
+          Try clearing your search filters or add a new game file into your local catalog using the button above!
+        </p>
+        <button onclick="resetFilters()" class="px-4 py-2 bg-purple-700 hover:bg-purple-600 text-white rounded-xl text-xs font-semibold transition-all">
+          Reset Filters
+        </button>
+      </div>
+
+    </main>
+
+    <footer class="mt-auto border-t border-purple-900/50 bg-purple-950/80 py-6 px-4 text-center text-xs text-purple-400/80">
+      <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+          <span><strong>PURPLE VAULT</strong> © 2026 • Powered by Ruffle Flash Emulator &amp; HTML5 Container</span>
+        </div>
+        <div class="flex items-center gap-4 text-purple-300">
+          <a href="#" onclick="openAddGameModal(); return false;" class="hover:text-fuchsia-300 transition-colors">Manage Items</a>
+          <span>•</span>
+          <a href="#" onclick="exportGitHubRepoZip(); return false;" class="hover:text-fuchsia-300 transition-colors">Export Repo Zip</a>
+          <span>•</span>
+          <span class="text-purple-500">Folder: <code class="text-fuchsia-400">./items/</code></span>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <div id="player-modal" class="fixed inset-0 z-50 hidden bg-purple-950/90 backdrop-blur-md flex flex-col transition-opacity duration-300">
+    
+    <!-- Modal Control Header -->
+    <div class="bg-purple-900/80 border-b border-purple-700/40 px-4 py-3 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 overflow-hidden">
+        <div id="modal-game-icon" class="w-9 h-9 rounded-xl bg-purple-800 flex items-center justify-center text-lg text-purple-300 flex-shrink-0">
+          <i class="fa-solid fa-gamepad"></i>
+        </div>
+        <div class="truncate">
+          <h3 id="modal-game-title" class="text-sm sm:text-base font-bold text-white truncate">Game Title</h3>
+          <p id="modal-game-path" class="text-[11px] font-mono text-purple-300/70 truncate">items/sample.swf</p>
+        </div>
+      </div>
+
+      <!-- Control Toolbar -->
+      <div class="flex items-center gap-2 flex-shrink-0">
+        
+        <!-- Aspect Ratio Selector -->
+        <div class="hidden sm:flex items-center bg-purple-950/80 p-1 rounded-xl border border-purple-700/40 text-xs">
+          <button onclick="setAspectRatio('4-3')" id="ratio-4-3" class="ratio-btn px-2.5 py-1 rounded-lg text-purple-300 hover:text-white font-medium transition-colors">4:3</button>
+          <button onclick="setAspectRatio('16-9')" id="ratio-16-9" class="ratio-btn px-2.5 py-1 rounded-lg text-purple-300 hover:text-white font-medium transition-colors active bg-purple-700 text-white">16:9</button>
+          <button onclick="setAspectRatio('stretch')" id="ratio-stretch" class="ratio-btn px-2.5 py-1 rounded-lg text-purple-300 hover:text-white font-medium transition-colors">Stretch</button>
+        </div>
+
+        <!-- Reload Button -->
+        <button onclick="reloadCurrentGame()" title="Reload Game" class="w-9 h-9 rounded-xl bg-purple-800/80 hover:bg-purple-700 text-purple-200 flex items-center justify-center transition-all">
+          <i class="fa-solid fa-rotate-right text-sm"></i>
+        </button>
+
+        <!-- Fullscreen Button -->
+        <button onclick="toggleFullscreen()" title="Toggle Fullscreen" class="w-9 h-9 rounded-xl bg-purple-800/80 hover:bg-purple-700 text-purple-200 flex items-center justify-center transition-all">
+          <i class="fa-solid fa-expand text-sm"></i>
+        </button>
+
+        <!-- Close Button -->
+        <button onclick="closeGameModal()" title="Close Game" class="w-9 h-9 rounded-xl bg-fuchsia-900/80 hover:bg-fuchsia-700 text-white flex items-center justify-center transition-all border border-fuchsia-500/40">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal Canvas / Iframe Screen Area -->
+    <div class="flex-grow flex items-center justify-center p-2 sm:p-6 overflow-hidden relative">
+      <div id="game-stage-wrapper" class="w-full max-w-5xl aspect-16-9 bg-black rounded-2xl shadow-2xl shadow-purple-950/80 border border-purple-700/40 overflow-hidden relative flex items-center justify-center transition-all duration-300">
+        
+        <!-- Loading Spinner -->
+        <div id="game-loader" class="absolute inset-0 bg-purple-950/90 flex flex-col items-center justify-center gap-3 z-10">
+          <i class="fa-solid fa-circle-notch fa-spin text-3xl text-fuchsia-400"></i>
+          <span class="text-xs font-semibold text-purple-200 tracking-wider">LOADING VAULT GAME ENGINE...</span>
+        </div>
+
+        <!-- Stage Container where Ruffle or Iframe will embed -->
+        <div id="game-container" class="w-full h-full flex items-center justify-center"></div>
+
+      </div>
+    </div>
+  </div>
+
+  <div id="add-game-modal" class="fixed inset-0 z-50 hidden bg-purple-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-card w-full max-w-md rounded-2xl p-6 border border-purple-500/30 space-y-5 shadow-2xl relative">
+      <div class="flex items-center justify-between border-b border-purple-800/50 pb-3">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-square-plus text-fuchsia-400"></i>
+          <span>Add New Game Entry</span>
+        </h3>
+        <button onclick="closeAddGameModal()" class="text-purple-400 hover:text-white text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="add-game-form" onsubmit="handleFormSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-purple-300 mb-1">Game Title</label>
+          <input type="text" id="form-title" required="" placeholder="e.g. Alien Defender SWF" class="w-full bg-purple-900/60 border border-purple-700/50 rounded-xl px-3.5 py-2 text-xs text-white placeholder-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400">
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-purple-300 mb-1">File Path (inside ./items/)</label>
+          <input type="text" id="form-path" required="" placeholder="e.g. items/alien_defender.swf" class="w-full bg-purple-900/60 border border-purple-700/50 rounded-xl px-3.5 py-2 text-xs text-white font-mono placeholder-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-purple-300 mb-1">Format Type</label>
+            <select id="form-type" class="w-full bg-purple-900/60 border border-purple-700/50 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-purple-400">
+              <option value="swf">Flash (.SWF)</option>
+              <option value="html">HTML5 (.HTML)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-purple-300 mb-1">Icon Style</label>
+            <select id="form-icon" class="w-full bg-purple-900/60 border border-purple-700/50 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-purple-400">
+              <option value="fa-gamepad">Gamepad</option>
+              <option value="fa-rocket">Rocket</option>
+              <option value="fa-ghost">Ghost</option>
+              <option value="fa-dragon">Dragon</option>
+              <option value="fa-crosshair">Crosshair</option>
+              <option value="fa-chess-knight">Knight</option>
+              <option value="fa-cubes">Cubes</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-purple-300 mb-1">Short Description</label>
+          <textarea id="form-desc" rows="2" placeholder="Brief description or instructions for the game..." class="w-full bg-purple-900/60 border border-purple-700/50 rounded-xl px-3.5 py-2 text-xs text-white placeholder-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" onclick="closeAddGameModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-purple-300 hover:bg-purple-900/50">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white shadow-lg shadow-purple-900/50">Save Game to Catalog</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"><div class="pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl bg-purple-900/90 border border-purple-500/40 text-xs font-semibold text-white shadow-xl shadow-purple-950/80 transition-all duration-300 transform translate-y-2 opacity-0"><i class="fa-solid fa-circle-info text-fuchsia-400 text-base"></i> <span>Generating GitHub Repository ZIP file...</span></div></div>
+
+  <script>
+    
+    // Default Initial Catalog
+    const DEFAULT_GAMES = [
+      {
+        id: 'g1',
+        title: 'Cyber Retro Runner',
+        path: 'items/cyber_runner.html',
+        type: 'html',
+        icon: 'fa-rocket',
+        desc: 'Neon-infused fast-paced HTML canvas obstacles runner.',
+        tags: ['HTML5', 'Arcade', 'Action']
+      },
+      {
+        id: 'g2',
+        title: 'Alien Space SWF Attack',
+        path: 'items/alien_adventure.swf',
+        type: 'swf',
+        icon: 'fa-ghost',
+        desc: 'Classic Flash retro alien space shooter executable via Ruffle.',
+        tags: ['Flash', 'SWF', 'Shooter']
+      },
+      {
+        id: 'g3',
+        title: 'Neon Brick Breaker',
+        path: 'items/brick_breaker.html',
+        type: 'html',
+        icon: 'fa-cubes',
+        desc: 'Vibrant arcade brick destruction game built with HTML5.',
+        tags: ['HTML5', 'Puzzle', 'Retro']
+      },
+      {
+        id: 'g4',
+        title: 'Flash Retro Tank Arena',
+        path: 'items/retro_tank.swf',
+        type: 'swf',
+        icon: 'fa-crosshair',
+        desc: 'Classic Flash tank battle simulator with neon graphics.',
+        tags: ['Flash', 'SWF', 'Battle']
+      },
+      {
+        id: 'g5',
+        title: 'Cosmic Memory Match',
+        path: 'items/memory_match.html',
+        type: 'html',
+        icon: 'fa-chess-knight',
+        desc: 'Brain testing purple neon tile matching puzzle game.',
+        tags: ['HTML5', 'Puzzle', 'Casual']
+      },
+      {
+        id: 'g6',
+        title: 'Flash Castle Defender',
+        path: 'items/castle_defense.swf',
+        type: 'swf',
+        icon: 'fa-dragon',
+        desc: 'Tower defense Flash strategy game.',
+        tags: ['Flash', 'SWF', 'Strategy']
+      }
+    ];
+
+    // App State
+    let gamesCatalog = [];
+    let currentFilter = 'all';
+    let searchQuery = '';
+    let activeGame = null;
+    let localFileBlobs = {}; // Stores dynamically dropped/uploaded File object Blob URLs
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initStarfieldCanvas();
+      loadCatalog();
+      renderCatalog();
+      setupDragAndDrop();
+    });
+
+    // Load saved games or default
+    function loadCatalog() {
+      const saved = localStorage.getItem('purple_vault_games');
+      if (saved) {
+        try {
+          gamesCatalog = JSON.parse(saved);
+        } catch (e) {
+          gamesCatalog = [...DEFAULT_GAMES];
+        }
+      } else {
+        gamesCatalog = [...DEFAULT_GAMES];
+        saveCatalog();
+      }
+    }
+
+    function saveCatalog() {
+      localStorage.setItem('purple_vault_games', JSON.stringify(gamesCatalog));
+    }
+
+    function renderCatalog() {
+      const grid = document.getElementById('games-grid');
+      const emptyState = document.getElementById('empty-state');
+      grid.innerHTML = '';
+
+      let countAll = 0;
+      let countSwf = 0;
+      let countHtml = 0;
+
+      gamesCatalog.forEach(g => {
+        countAll++;
+        if (g.type === 'swf') countSwf++;
+        if (g.type === 'html') countHtml++;
+      });
+
+      document.getElementById('count-all').innerText = countAll;
+      document.getElementById('count-swf').innerText = countSwf;
+      document.getElementById('count-html').innerText = countHtml;
+
+      const filtered = gamesCatalog.filter(game => {
+        const matchesFilter = (currentFilter === 'all') || (game.type === currentFilter);
+        const q = searchQuery.toLowerCase();
+        const matchesSearch = !q || 
+          game.title.toLowerCase().includes(q) || 
+          game.path.toLowerCase().includes(q) || 
+          game.desc.toLowerCase().includes(q);
+        return matchesFilter && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        emptyState.classList.remove('hidden');
+        emptyState.classList.add('flex');
+      } else {
+        emptyState.classList.add('hidden');
+        emptyState.classList.remove('flex');
+      }
+
+      filtered.forEach(game => {
+        const card = document.createElement('div');
+        card.className = 'glass-card rounded-2xl p-5 flex flex-col justify-between relative group border border-purple-500/20 hover:border-purple-400/60';
+        
+        const isSwf = game.type === 'swf';
+        const badgeColor = isSwf ? 'bg-fuchsia-900/70 text-fuchsia-300 border-fuchsia-500/40' : 'bg-orange-950/70 text-orange-300 border-orange-500/40';
+        const badgeIcon = isSwf ? 'fa-bolt text-fuchsia-400' : 'fa-brands fa-html5 text-orange-400';
+        const badgeLabel = isSwf ? 'FLASH .SWF' : 'HTML5';
+
+        card.innerHTML = `
+          <div>
+            <!-- Top Badge & Actions -->
+            <div class="flex items-center justify-between mb-4">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-wider border ${badgeColor}">
+                <i class="fa-solid ${badgeIcon}"></i>
+                ${badgeLabel}
+              </span>
+              <button onclick="deleteGame('${game.id}', event)" class="opacity-0 group-hover:opacity-100 transition-opacity text-purple-400 hover:text-red-400 p-1" title="Delete from list">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            </div>
+
+            <!-- Big Rounded Purple Icon -->
+            <div class="flex items-center gap-4 mb-4">
+              <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-purple-600 via-purple-800 to-purple-950 p-0.5 shadow-lg shadow-purple-950/80 flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
+                <div class="w-full h-full bg-purple-900/90 rounded-[14px] flex items-center justify-center text-2xl sm:text-3xl text-purple-200 group-hover:text-fuchsia-300 transition-colors">
+                  <i class="fa-solid ${game.icon || 'fa-gamepad'}"></i>
+                </div>
+              </div>
+
+              <div class="overflow-hidden">
+                <h3 class="font-bold text-base sm:text-lg text-white group-hover:text-fuchsia-300 transition-colors leading-tight line-clamp-1">${escapeHtml(game.title)}</h3>
+                <p class="text-[11px] font-mono text-purple-400/80 mt-1 truncate" title="${escapeHtml(game.path)}">
+                  <i class="fa-regular fa-folder text-[10px]"></i> ${escapeHtml(game.path)}
+                </p>
+              </div>
+            </div>
+
+            <p class="text-xs text-purple-300/70 line-clamp-2 mb-4 leading-relaxed">${escapeHtml(game.desc || 'No description provided.')}</p>
+          </div>
+
+          <!-- Bottom Play Action Button -->
+          <button onclick="playGame('${game.id}')" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-700 via-purple-600 to-fuchsia-600 hover:from-purple-600 hover:to-fuchsia-500 text-white font-bold text-xs sm:text-sm tracking-wide shadow-md shadow-purple-950 flex items-center justify-center gap-2 transition-all transform active:scale-95 group/btn">
+            <i class="fa-solid fa-circle-play text-base text-fuchsia-200 group-hover/btn:scale-110 transition-transform"></i>
+            <span>PLAY NOW</span>
+          </button>
+        `;
+
+        grid.appendChild(card);
+      });
+    }
+
+    function setFilter(type) {
+      currentFilter = type;
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('bg-purple-600', 'text-white', 'border-purple-400', 'shadow-md');
+        btn.classList.add('bg-purple-900/70', 'text-purple-300', 'border-purple-700/40');
+      });
+      
+      const activeBtn = document.getElementById(`filter-${type}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('bg-purple-900/70', 'text-purple-300', 'border-purple-700/40');
+        activeBtn.classList.add('bg-purple-600', 'text-white', 'border-purple-400', 'shadow-md');
+      }
+
+      renderCatalog();
+    }
+
+    function filterGames() {
+      searchQuery = document.getElementById('search-input').value;
+      renderCatalog();
+    }
+
+    function resetFilters() {
+      searchQuery = '';
+      document.getElementById('search-input').value = '';
+      setFilter('all');
+    }
+
+    function playGame(gameId) {
+      const game = gamesCatalog.find(g => g.id === gameId);
+      if (!game) return;
+
+      activeGame = game;
+      const modal = document.getElementById('player-modal');
+      const container = document.getElementById('game-container');
+      const loader = document.getElementById('game-loader');
+
+      document.getElementById('modal-game-title').innerText = game.title;
+      document.getElementById('modal-game-path').innerText = game.path;
+      document.getElementById('modal-game-icon').innerHTML = `<i class="fa-solid ${game.icon || 'fa-gamepad'}"></i>`;
+
+      container.innerHTML = '';
+      loader.classList.remove('hidden');
+      modal.classList.remove('hidden');
+
+      // Resolve URL (check if blob uploaded or relative filepath)
+      let sourceUrl = game.path;
+      if (localFileBlobs[game.path]) {
+        sourceUrl = localFileBlobs[game.path];
+      }
+
+      // Execute based on type
+      setTimeout(() => {
+        if (game.type === 'swf') {
+          loadFlashSwf(sourceUrl, container, loader);
+        } else {
+          loadHtmlGame(sourceUrl, container, loader, game);
+        }
+      }, 300);
+    }
+
+    // Flash SWF Ruffle Engine Loader
+    function loadFlashSwf(url, container, loader) {
+      try {
+        if (window.RufflePlayer) {
+          const ruffle = window.RufflePlayer.newest();
+          const player = ruffle.createPlayer();
+          player.style.width = '100%';
+          player.style.height = '100%';
+          container.appendChild(player);
+
+          player.load(url).then(() => {
+            loader.classList.add('hidden');
+            showToast('Flash SWF loaded via Ruffle!', 'success');
+          }).catch(err => {
+            console.warn('SWF direct load failed, offering fallback interactive state', err);
+            loader.classList.add('hidden');
+            renderSwfFallbackMessage(container, url);
+          });
+        } else {
+          loader.classList.add('hidden');
+          showToast('Ruffle player extension loading... Please retry in a moment.', 'warning');
+        }
+      } catch (err) {
+        loader.classList.add('hidden');
+        renderSwfFallbackMessage(container, url);
+      }
+    }
+
+    function renderSwfFallbackMessage(container, path) {
+      container.innerHTML = `
+        <div class="text-center p-6 space-y-3 max-w-md bg-purple-900/60 rounded-2xl border border-purple-500/30">
+          <i class="fa-solid fa-file-circle-exclamation text-4xl text-fuchsia-400 animate-bounce"></i>
+          <h4 class="text-lg font-bold text-white">SWF File Loader Notice</h4>
+          <p class="text-xs text-purple-300">
+            Target path <code class="bg-purple-950 px-1 py-0.5 rounded text-fuchsia-300">${escapeHtml(path)}</code> was not found on server directory.
+          </p>
+          <p class="text-xs text-purple-400">
+            Please place the actual <code class="text-white">.swf</code> file into your local <code class="text-fuchsia-300">/items/</code> folder or drop/upload it using the <strong>Load Folder/Files</strong> button!
+          </p>
+          <button onclick="document.getElementById('files-input').click()" class="mt-2 px-4 py-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white rounded-xl text-xs font-bold transition-all">
+            Upload Local .SWF File
+          </button>
+        </div>
+      `;
+    }
+
+    // HTML5 Sandbox Game Loader
+    function loadHtmlGame(url, container, loader, gameObj) {
+      const iframe = document.createElement('iframe');
+      iframe.className = 'w-full h-full border-0 rounded-xl bg-black';
+      iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-forms');
+
+      iframe.onload = () => {
+        loader.classList.add('hidden');
+      };
+
+      // Check if URL is relative path and might not exist; build mock demo HTML game on the fly if needed
+      if (!localFileBlobs[url] && (url.includes('cyber_runner.html') || url.includes('brick_breaker.html') || url.includes('memory_match.html'))) {
+        const generatedHtmlBlob = createSampleHtmlGameBlob(gameObj.title);
+        iframe.src = generatedHtmlBlob;
+      } else {
+        iframe.src = url;
+      }
+
+      container.appendChild(iframe);
+      // Safety timeout for loader
+      setTimeout(() => loader.classList.add('hidden'), 500);
+    }
+
+    function createSampleHtmlGameBlob(title) {
+      const code = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { margin: 0; background: #0c051a; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; items-center; justify-content: center; height: 100vh; overflow: hidden; text-align: center; }
+            canvas { background: #160a2e; border: 2px solid #a855f7; border-radius: 12px; box-shadow: 0 0 20px rgba(168,85,247,0.4); cursor: pointer; }
+            h2 { margin: 0 0 10px 0; color: #e879f9; text-shadow: 0 0 10px rgba(232,121,249,0.5); font-size: 20px; }
+            p { font-size: 12px; color: #c084fc; margin-top: 8px; }
+          </style>
+        </head>
+        <body>
+          <h2>${title}</h2>
+          <canvas id="c" width="480" height="270"></canvas>
+          <p>Click / Tap canvas or press Spacebar to Jump / Action!</p>
+          <script>
+            const canvas = document.getElementById('c');
+            const ctx = canvas.getContext('2d');
+            let player = { x: 50, y: 180, vy: 0, size: 20, jumping: false };
+            let score = 0;
+            let obstacles = [];
+            let frame = 0;
+
+            function jump() {
+              if (!player.jumping) {
+                player.vy = -10;
+                player.jumping = true;
+              }
+            }
+
+            window.addEventListener('keydown', (e) => { if (e.code === 'Space') jump(); });
+            canvas.addEventListener('click', jump);
+
+            function update() {
+              frame++;
+              player.vy += 0.5;
+              player.y += player.vy;
+              if (player.y >= 180) { player.y = 180; player.jumping = false; }
+
+              if (frame % 80 === 0) {
+                obstacles.push({ x: 480, w: 15, h: 30 });
+              }
+
+              for (let i = 0; i < obstacles.length; i++) {
+                obstacles[i].x -= 4;
+                if (
+                  player.x < obstacles[i].x + obstacles[i].w &&
+                  player.x + player.size > obstacles[i].x &&
+                  player.y < 200 &&
+                  player.y + player.size > 200 - obstacles[i].h
+                ) {
+                  score = 0;
+                }
+              }
+              obstacles = obstacles.filter(o => o.x > -20);
+              score++;
+
+              // Render
+              ctx.fillStyle = '#160a2e';
+              ctx.fillRect(0,0,480,270);
+
+              // Ground line
+              ctx.strokeStyle = '#a855f7';
+              ctx.lineWidth = 2;
+              ctx.beginPath(); ctx.moveTo(0, 200); ctx.lineTo(480, 200); ctx.stroke();
+
+              // Player
+              ctx.fillStyle = '#e879f9';
+              ctx.shadowColor = '#e879f9'; ctx.shadowBlur = 10;
+              ctx.fillRect(player.x, player.y - player.size, player.size, player.size);
+
+              // Obstacles
+              ctx.fillStyle = '#a855f7';
+              ctx.shadowColor = '#a855f7';
+              obstacles.forEach(o => {
+                ctx.fillRect(o.x, 200 - o.h, o.w, o.h);
+              });
+
+              // Score
+              ctx.shadowBlur = 0;
+              ctx.fillStyle = '#ffffff';
+              ctx.font = '14px sans-serif';
+              ctx.fillText('SCORE: ' + Math.floor(score/5), 15, 25);
+
+              requestAnimationFrame(update);
+            }
+            update();
+          <\/script>
+        </body>
+        </html>
+      `;
+      const blob = new Blob([code], { type: 'text/html' });
+      return URL.createObjectURL(blob);
+    }
+
+    function closeGameModal() {
+      const modal = document.getElementById('player-modal');
+      const container = document.getElementById('game-container');
+      modal.classList.add('hidden');
+      container.innerHTML = '';
+      activeGame = null;
+    }
+
+    function reloadCurrentGame() {
+      if (activeGame) {
+        playGame(activeGame.id);
+        showToast('Game reloaded', 'info');
+      }
+    }
+
+    function setAspectRatio(ratio) {
+      const wrapper = document.getElementById('game-stage-wrapper');
+      wrapper.classList.remove('aspect-4-3', 'aspect-16-9', 'aspect-stretch');
+      
+      document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('bg-purple-700', 'text-white'));
+      document.getElementById(`ratio-${ratio}`).classList.add('bg-purple-700', 'text-white');
+
+      if (ratio === '4-3') wrapper.classList.add('aspect-4-3');
+      if (ratio === '16-9') wrapper.classList.add('aspect-16-9');
+      if (ratio === 'stretch') wrapper.classList.add('aspect-stretch');
+    }
+
+    function toggleFullscreen() {
+      const wrapper = document.getElementById('game-stage-wrapper');
+      if (!document.fullscreenElement) {
+        wrapper.requestFullscreen().catch(err => showToast('Fullscreen mode not allowed', 'warning'));
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    function triggerFolderInput() {
+      document.getElementById('folder-input').click();
+    }
+
+    function handleFileSelect(event) {
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
+      processUploadedFiles(Array.from(files));
+    }
+
+    function handleFolderSelect(event) {
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
+      processUploadedFiles(Array.from(files));
+    }
+
+    function processUploadedFiles(fileList) {
+      let addedCount = 0;
+      fileList.forEach(file => {
+        const name = file.name;
+        const ext = name.split('.').pop().toLowerCase();
+        if (ext === 'swf' || ext === 'html' || ext === 'htm') {
+          const type = ext === 'swf' ? 'swf' : 'html';
+          const relativePath = file.webkitRelativePath || `items/${name}`;
+          const blobUrl = URL.createObjectURL(file);
+          localFileBlobs[relativePath] = blobUrl;
+
+          // Check if already in catalog
+          const existing = gamesCatalog.find(g => g.path === relativePath || g.title === name);
+          if (!existing) {
+            gamesCatalog.unshift({
+              id: 'g_' + Date.now() + '_' + Math.random().toString(36).substr(2,4),
+              title: name.replace(/\.[^/.]+$/, "").replace(/_/g, " "),
+              path: relativePath,
+              type: type,
+              icon: type === 'swf' ? 'fa-bolt' : 'fa-code',
+              desc: `Imported local file (${file.size ? (file.size/1024).toFixed(1) + ' KB' : 'Local'})`,
+              tags: ['Local', type.toUpperCase()]
+            });
+            addedCount++;
+          }
+        }
+      });
+
+      if (addedCount > 0) {
+        saveCatalog();
+        renderCatalog();
+        showToast(`Successfully added ${addedCount} game file(s)!`, 'success');
+      } else {
+        showToast('No valid .swf or .html files detected.', 'warning');
+      }
+    }
+
+    function setupDragAndDrop() {
+      const dropZone = document.getElementById('drop-zone');
+      
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          dropZone.classList.add('border-fuchsia-400', 'bg-purple-900/50');
+        }, false);
+      });
+
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          dropZone.classList.remove('border-fuchsia-400', 'bg-purple-900/50');
+        }, false);
+      });
+
+      dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files && files.length > 0) {
+          processUploadedFiles(Array.from(files));
+        }
+      });
+    }
+
+    function openAddGameModal() {
+      document.getElementById('add-game-modal').classList.remove('hidden');
+    }
+
+    function closeAddGameModal() {
+      document.getElementById('add-game-modal').classList.add('hidden');
+      document.getElementById('add-game-form').reset();
+    }
+
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      const title = document.getElementById('form-title').value;
+      const path = document.getElementById('form-path').value;
+      const type = document.getElementById('form-type').value;
+      const icon = document.getElementById('form-icon').value;
+      const desc = document.getElementById('form-desc').value;
+
+      const newGame = {
+        id: 'g_' + Date.now(),
+        title,
+        path,
+        type,
+        icon,
+        desc,
+        tags: ['Custom', type.toUpperCase()]
+      };
+
+      gamesCatalog.unshift(newGame);
+      saveCatalog();
+      renderCatalog();
+      closeAddGameModal();
+      showToast('New game entry saved to catalog!', 'success');
+    }
+
+    function deleteGame(id, event) {
+      event.stopPropagation();
+      gamesCatalog = gamesCatalog.filter(g => g.id !== id);
+      saveCatalog();
+      renderCatalog();
+      showToast('Game removed from catalog.', 'info');
+    }
+
+    async function exportGitHubRepoZip() {
+      showToast('Generating GitHub Repository ZIP file...', 'info');
+
+      try {
+        const zip = new JSZip();
+
+        // 1. Current full index.html content
+        const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+        zip.file("index.html", htmlContent);
+
+        // 2. Comprehensive README.md
+        const readmeContent = `# 🍇 PURPLE VAULT - SWF & HTML5 Game Hub Repository
+
+Welcome to **Purple Vault**, a modern retro-styled web game portal designed to load and play both **Flash (.swf)** games (powered by the integrated [Ruffle](https://ruffle.rs/) emulator) and **HTML5** games directly from an \`./items/\` directory.
+
+---
+
+## 🚀 Quick Start & Deployment Guide
+
+### 1. Adding Games to your Hub
+1. Place all your \`.swf\` and \`.html\` game files into the \`items/\` folder in this repository.
+   - Example path for Flash: \`items/space_shooter.swf\`
+   - Example path for HTML5: \`items/retro_runner.html\`
+2. Open \`index.html\` in your browser or click **"Add Game"** in the top navigation bar to register your game filenames into the list!
+
+### 2. Host directly on GitHub Pages
+1. Push this repository to GitHub.
+2. Go to **Settings > Pages**.
+3. Set the source branch to **main** (or \`master\`) / root (\`/\`).
+4. Click **Save**. Your Purple Vault portal will be live on the web instantly!
+
+---
+
+## ⚡ Features
+- 👾 **Dual Engine Support**: Flawless Flash SWF emulation via Ruffle CDN + HTML5 iframe sandbox.
+- 🎨 **Deep Purple Aesthetics**: Neon violet accents, glassmorphism cards, and starfield canvas background.
+- 📁 **Folder Drag & Drop**: Test local files dynamically with Blob URL integration.
+- 📦 **Export Ready**: Pre-configured structure ready for GitHub Pages hosting.
+
+*Created with Purple Vault Portal System.*
+`;
+        zip.file("README.md", readmeContent);
+
+        // 3. .gitignore
+        zip.file(".gitignore", ".DS_Store\nThumbs.db\n*.log\nnode_modules/\n");
+
+        // 4. Sample items folder with Readme and Demo HTML Game
+        const itemsFolder = zip.folder("items");
+        itemsFolder.file("README.txt", "Place all your .swf and .html game files inside this directory!\nExample: items/mygame.swf\nitems/mygame.html\n");
+
+        itemsFolder.file("cyber_runner.html", `<!DOCTYPE html>
+<html>
+<head>
+  <title>Cyber Runner Demo</title>
+  <style>
+    body { background: #0a0314; color: #e879f9; font-family: sans-serif; text-align: center; margin-top: 50px; }
+    h1 { font-size: 24px; text-shadow: 0 0 10px #a855f7; }
+  </style>
+</head>
+<body>
+  <h1>⚡ Cyber Runner Sample Game</h1>
+  <p>Place your actual game files in the /items/ directory!</p>
+</body>
+</html>`);
+
+        // Generate and trigger download
+        const content = await zip.generateAsync({ type: "blob" });
+        saveAs(content, "purple-vault-game-portal.zip");
+        showToast('Repository ZIP downloaded successfully!', 'success');
+
+      } catch (err) {
+        console.error('ZIP generation error:', err);
+        showToast('Failed to build ZIP file.', 'error');
+      }
+    }
+
+    function initStarfieldCanvas() {
+      const canvas = document.getElementById('particle-canvas');
+      const ctx = canvas.getContext('2d');
+
+      let width = canvas.width = window.innerWidth;
+      let height = canvas.height = window.innerHeight;
+
+      window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      });
+
+      const stars = [];
+      const numStars = 70;
+
+      for (let i = 0; i < numStars; i++) {
+        stars.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          radius: Math.random() * 1.8 + 0.5,
+          color: Math.random() > 0.5 ? 'rgba(192, 132, 252, ' : 'rgba(232, 121, 249, ',
+          alpha: Math.random(),
+          speed: Math.random() * 0.015 + 0.005
+        });
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, width, height);
+
+        // Draw ambient background nebula glow
+        const grad = ctx.createRadialGradient(width/2, height/2, 10, width/2, height/2, Math.max(width, height));
+        grad.addColorStop(0, 'rgba(38, 17, 82, 0.25)');
+        grad.addColorStop(1, 'rgba(9, 3, 20, 0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, width, height);
+
+        stars.forEach(s => {
+          s.alpha += s.speed;
+          if (s.alpha > 1 || s.alpha < 0) s.speed = -s.speed;
+
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+          ctx.fillStyle = s.color + Math.max(0, s.alpha) + ')';
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = s.color + '0.8)';
+          ctx.fill();
+        });
+
+        requestAnimationFrame(animate);
+      }
+
+      animate();
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+
+      const icons = {
+        success: 'fa-circle-check text-green-400',
+        error: 'fa-circle-xmark text-red-400',
+        warning: 'fa-triangle-exclamation text-yellow-400',
+        info: 'fa-circle-info text-fuchsia-400'
+      };
+
+      toast.className = 'pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl bg-purple-900/90 border border-purple-500/40 text-xs font-semibold text-white shadow-xl shadow-purple-950/80 transition-all duration-300 transform translate-y-2 opacity-0';
+      toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info} text-base"></i> <span>${escapeHtml(message)}</span>`;
+
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 10);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+  </script>
+
+</body></html>
